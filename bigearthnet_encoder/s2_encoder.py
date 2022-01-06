@@ -6,6 +6,7 @@ from pydantic import validate_arguments, DirectoryPath, FilePath
 from typing import Dict, Any, Callable, List
 import pandas as pd
 import lmdb
+from rich.progress import track
 
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
 
@@ -69,7 +70,7 @@ def write_S2_lmdb(
     env = lmdb.open(str(lmdb_path), map_size=max_size, readonly=False)
 
     with env.begin(write=True) as txn:
-        for patch_path in patch_paths:
+        for patch_path in track(patch_paths, description="Building LMDB archive"):
             patch_name = patch_path.name
             if patch_name_to_metadata is not None:
                 metadata = patch_name_to_metadata(patch_name)
