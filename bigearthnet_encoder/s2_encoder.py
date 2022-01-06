@@ -51,7 +51,11 @@ def patch_name_to_metadata_func_builder_from_parquet(
         - For example, lists are encoded as np.ndarray of dtype='object' when stored as parquet
     """
     df = pd.read_parquet(parquet_path)
-    indexed_df = df.set_index(patch_name_col).drop(drop_cols, axis=1)
+    indexed_df = df.set_index(
+        patch_name_col,
+    )
+    if drop_cols is not None:
+        indexed_df = indexed_df.drop(drop_cols, axis=1)
 
     def patch_name_to_metdata_func(patch_name):
         return indexed_df.loc[patch_name].to_dict()
