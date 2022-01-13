@@ -1,4 +1,6 @@
+tests/BigEarthNet-S2
 wip.ipynb
+tiny.db/
 ben_encoder_env/
 .vscode/
 # hide this for now
@@ -21,6 +23,7 @@ tmp.*
 __pycache__/
 *.py[cod]
 *$py.class
+*.parquet
 
 # C extensions
 *.so
