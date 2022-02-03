@@ -1,11 +1,12 @@
-import re
 from pathlib import Path
 import bigearthnet_common.constants as ben_constants
 from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories
 from pydantic import validate_arguments, DirectoryPath
 from typing import Dict, Any, Callable, List, Optional
+import typer
 import lmdb
 from rich.progress import track
+import fastcore.all as fc
 
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
 from bigearthnet_patch_interface.s1_interface import BigEarthNet_S1_Patch
@@ -59,7 +60,7 @@ def _write_lmdb(
     lmdb_path: Path = Path("S2_lmdb.db"),
     patch_name_to_metadata: Optional[Callable[[str], Dict[str, Any]]] = None,
 ):
-    max_size = 2 ** 40  # 1TebiByte
+    max_size = 2**40  # 1TebiByte
     env = lmdb.open(str(lmdb_path), map_size=max_size, readonly=False)
 
     with env.begin(write=True) as txn:
@@ -107,3 +108,24 @@ def write_S1_lmdb(
         lmdb_path=lmdb_path,
         patch_name_to_metadata=patch_name_to_metadata,
     )
+
+
+@fc.delegates(write_S1_lmdb, but=["patch_name_to_metadata"])
+def write_simple_S1_lmdb(ben_s1_directory_path: Path, **kwargs):
+    return write_S1_lmdb(ben_s1_directory_path, **kwargs)
+
+
+@fc.delegates(write_S2_lmdb, but=["patch_name_to_metadata"])
+def write_simple_S2_lmdb(ben_s2_directory_path: Path, **kwargs):
+    return write_S2_lmdb(ben_s2_directory_path, **kwargs)
+
+
+def encoder_cli():
+    app = typer.Typer()
+    app.command()(write_simple_S1_lmdb)
+    app.command()(write_simple_S2_lmdb)
+    app()
+
+
+if __name__ == "__main__":
+    encoder_cli()
