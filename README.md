@@ -24,5 +24,5 @@ _Could_ be combined with:
 While the library and the patch interface are still in development, install the library directly from git:
 
 ```sh
-python -m pip install --upgrade git+https://github.com/kai-tub/bigearthnet_encoder.git
+python -m pip install --ignore-installed git+https://github.com/kai-tub/bigearthnet_encoder.git
 ```
