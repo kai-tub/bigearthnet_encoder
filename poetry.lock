@@ -163,7 +163,7 @@ pydantic = "^1.9.0"
 type = "git"
 url = "https://github.com/kai-tub/bigearthnet_patch_interface"
 reference = "main"
-resolved_reference = "7d40bb216d28696cd221b753f4f046669ac43e26"
+resolved_reference = "81a42dfc30fbab34dd454064fc9ce3c75953ee99"
 
 [[package]]
 name = "black"

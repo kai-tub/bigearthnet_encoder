@@ -10,8 +10,9 @@ import lmdb
 from rich.progress import Progress
 import fastcore.all as fc
 
-from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
 from bigearthnet_patch_interface.s1_interface import BigEarthNet_S1_Patch
+from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
+from bigearthnet_patch_interface.merged_interface import BigEarthNet_S1_S2_Patch
 
 from .metadata_utils import load_labels_from_patch_path
 from ._tif_reader import read_ben_tiffs
@@ -54,6 +55,25 @@ def tiff_dir_to_ben_s1_patch(patch_dir: DirectoryPath, **kwargs):
     name_np_dict = read_ben_tiffs(patch_dir)
     bands_dict = {_tiff_name_to_ben_s1_patch_key(k): v for k, v in name_np_dict.items()}
     return BigEarthNet_S1_Patch(**bands_dict, **kwargs)
+
+
+@validate_arguments
+def tiff_dirs_to_ben_s1_s2_patch(
+    s1_patch_dir: DirectoryPath, s2_patch_dir: DirectoryPath, **kwargs
+):
+    s1_names_np_dict = read_ben_tiffs(s1_patch_dir)
+    s2_names_np_dict = read_ben_tiffs(s2_patch_dir)
+    s1_bands_dict = {
+        _tiff_name_to_ben_s2_patch_key(k): v for k, v in s1_names_np_dict.items()
+    }
+    s2_bands_dict = {
+        _tiff_name_to_ben_s2_patch_key(k): v for k, v in s2_names_np_dict.items()
+    }
+    return BigEarthNet_S1_S2_Patch(**s1_bands_dict, **s2_bands_dict, **kwargs)
+
+
+# TODO: Think about way to merge two directory sources together
+# maybe could work with other style
 
 
 @validate_arguments
