@@ -1,12 +1,13 @@
 from multiprocessing.sharedctypes import Value
 from pathlib import Path
+from tkinter.ttk import Progressbar
 import bigearthnet_common.constants as ben_constants
 from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories
 from pydantic import validate_arguments, DirectoryPath
 from typing import Dict, Any, Callable, List, Optional
 import typer
 import lmdb
-from rich.progress import track
+from rich.progress import Progress
 import fastcore.all as fc
 
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
@@ -61,6 +62,7 @@ def _write_lmdb(
     patch_builder: Callable,
     lmdb_path: Path = Path("S2_lmdb.db"),
     patch_path_to_metadata: Optional[Callable[[DirectoryPath], Dict[str, Any]]] = None,
+    chunk_size: int = 50_000,
 ):
     if len(patch_paths) == 0:
         raise ValueError(
@@ -69,52 +71,49 @@ def _write_lmdb(
     max_size = 2**40  # 1TebiByte
     env = lmdb.open(str(lmdb_path), map_size=max_size, readonly=False)
 
-    with env.begin(write=True) as txn:
-        for patch_path in track(patch_paths, description="Building LMDB archive"):
-            patch_name = patch_path.name
-            if patch_path_to_metadata is not None:
-                metadata = patch_path_to_metadata(patch_path)
-                if not isinstance(metadata, dict):
-                    raise TypeError(
-                        "name to metadata converter has returned a wrong type!",
-                        metadata,
-                    )
-            else:
-                metadata = {}
-            ben_patch = patch_builder(patch_path, **metadata)
-            txn.put(patch_name.encode(), ben_patch.dumps())
-    env.close()
+    chunks = fc.chunked(patch_paths, chunk_sz=chunk_size, drop_last=False)
+    with Progress() as progress:
+        task = progress.add_task("Building LMDB archive", total=len(patch_paths))
+        for chunk in chunks:
+            with env.begin(write=True) as txn:
+                for patch_path in chunk:
+                    patch_name = patch_path.name
+                    if patch_path_to_metadata is not None:
+                        metadata = patch_path_to_metadata(patch_path)
+                        if not isinstance(metadata, dict):
+                            raise TypeError(
+                                "name to metadata converter has returned a wrong type!",
+                                metadata,
+                            )
+                    else:
+                        metadata = {}
+                    ben_patch = patch_builder(patch_path, **metadata)
+                    txn.put(patch_name.encode(), ben_patch.dumps())
+                    progress.update(task, advance=1)
+        env.close()
 
 
-@validate_arguments
+@fc.delegates(_write_lmdb, but=["lmdb_path"])
 def write_S2_lmdb(
     ben_s2_path: DirectoryPath,
-    *,
+    /,
     lmdb_path: Path = Path("S2_lmdb.db"),
-    patch_path_to_metadata: Optional[Callable[[str], Dict[str, Any]]] = None,
+    **kwargs,
 ):
     patch_paths = get_s2_patch_directories(ben_s2_path)
-    _write_lmdb(
-        patch_paths,
-        tiff_dir_to_ben_s2_patch,
-        lmdb_path=lmdb_path,
-        patch_path_to_metadata=patch_path_to_metadata,
-    )
+    _write_lmdb(patch_paths, tiff_dir_to_ben_s2_patch, lmdb_path=lmdb_path, **kwargs)
 
 
-@validate_arguments
+@fc.delegates(_write_lmdb, but=["lmdb_path"])
 def write_S1_lmdb(
-    ben_s1_path: DirectoryPath,
-    *,
-    lmdb_path: Path = Path("S1_lmdb.db"),
-    patch_path_to_metadata: Optional[Callable[[str], Dict[str, Any]]] = None,
+    ben_s1_path: DirectoryPath, /, lmdb_path: Path = Path("S1_lmdb.db"), **kwargs
 ):
     patch_paths = get_s1_patch_directories(ben_s1_path)
     _write_lmdb(
         patch_paths,
         tiff_dir_to_ben_s1_patch,
         lmdb_path=lmdb_path,
-        patch_path_to_metadata=patch_path_to_metadata,
+        **kwargs,
     )
 
 
