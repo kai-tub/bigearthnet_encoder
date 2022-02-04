@@ -1,4 +1,5 @@
 import lmdb
+import pytest
 from bigearthnet_common.constants import BEN_S1_RE, BEN_S2_RE
 from bigearthnet_encoder.encoder import *
 from pathlib import Path
@@ -11,9 +12,10 @@ from bigearthnet_encoder.encoder import (
     write_S2_lmdb_raw,
     write_S2_lmdb,
     write_S1_lmdb,
+    write_S1_lmdb_with_lbls,
+    write_S2_lmdb_with_lbls,
+    _write_lmdb,
 )
-from bigearthnet_encoder.encoder import write_S2_lmdb_with_lbls
-from bigearthnet_encoder.encoder import write_S1_lmdb_with_lbls
 
 TEST_S2_ROOT = Path(__file__).parent / "s2-tiny"
 TEST_S2_FOLDER = TEST_S2_ROOT / "S2A_MSIL2A_20170617T113321_4_55"
@@ -34,6 +36,11 @@ def test_s2_tiff_dir_to_ben():
 def test_s1_tiff_dir_to_ben():
     ben_patch = tiff_dir_to_ben_s1_patch(TEST_S1_FOLDER)
     assert isinstance(ben_patch, BigEarthNet_S1_Patch)
+
+
+def test_empty_dir():
+    with pytest.raises(ValueError, match="No patches"):
+        _write_lmdb([], lambda x: x)
 
 
 def _lmdb_tester(lmdb_path, is_sentinel2, size, test_attrs=None):

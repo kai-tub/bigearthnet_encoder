@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import bigearthnet_common.constants as ben_constants
 from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories
@@ -61,6 +62,10 @@ def _write_lmdb(
     lmdb_path: Path = Path("S2_lmdb.db"),
     patch_path_to_metadata: Optional[Callable[[DirectoryPath], Dict[str, Any]]] = None,
 ):
+    if len(patch_paths) == 0:
+        raise ValueError(
+            "No patches were provided! Maybe provided wrong Sentinel directory?"
+        )
     max_size = 2**40  # 1TebiByte
     env = lmdb.open(str(lmdb_path), map_size=max_size, readonly=False)
 
