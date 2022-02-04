@@ -1,11 +1,12 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
-from pydantic import validate_arguments, FilePath
+from bigearthnet_common.base import read_S1_json, read_S2_json, old2new_labels
+from pydantic import DirectoryPath, validate_arguments, FilePath
 import pandas as pd
 
 
 @validate_arguments
-def patch_name_to_metadata_func_builder_from_parquet(
+def patch_path_to_metadata_func_builder_from_parquet(
     parquet_path: FilePath,
     patch_name_col: str = "name",
     drop_cols: Optional[List[str]] = None,
@@ -24,7 +25,23 @@ def patch_name_to_metadata_func_builder_from_parquet(
     if drop_cols is not None:
         indexed_df = indexed_df.drop(drop_cols, axis=1)
 
-    def patch_name_to_metdata_func(patch_name):
+    @validate_arguments
+    def patch_name_to_metdata_func(patch_path: DirectoryPath):
+        patch_name = patch_path.name
         return indexed_df.loc[patch_name].to_dict()
 
     return patch_name_to_metdata_func
+
+
+@validate_arguments
+def load_labels_from_patch_path(
+    patch_directory: DirectoryPath, is_sentinel2: bool, infer_new_labels: bool = True
+) -> Dict[str, str]:
+    read_json = read_S2_json if is_sentinel2 else read_S1_json
+    metadata = read_json(
+        patch_directory / f"{patch_directory.name}_labels_metadata.json"
+    )
+    result = {"labels": metadata["labels"]}
+    if infer_new_labels:
+        result["new_labels"] = old2new_labels(result["labels"])
+    return result
