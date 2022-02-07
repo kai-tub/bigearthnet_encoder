@@ -58,23 +58,22 @@ def tiff_dir_to_ben_s1_patch(patch_dir: DirectoryPath, **kwargs):
 
 
 @validate_arguments
-def tiff_dirs_to_ben_s1_s2_patch(
-    ben_s1_path: DirectoryPath,
-    s2_patch_dir: DirectoryPath, **kwargs
-):
-    s1_patch_name = s2_to_s1_patch_name(s2_patch_dir.name)
-    s1_patch_dir = ben_s1_path.joinpath(s1_patch_name)
+def gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path: DirectoryPath):
+    def tiff_dirs_to_ben_s1_s2_patch(s2_patch_dir: DirectoryPath, **kwargs):
+        s1_patch_name = s2_to_s1_patch_name(s2_patch_dir.name)
+        s1_patch_dir = ben_s1_path / s1_patch_name
 
-    s1_names_np_dict = read_ben_tiffs(s1_patch_dir)
-    s2_names_np_dict = read_ben_tiffs(s2_patch_dir)
-    s1_bands_dict = {
-        _tiff_name_to_ben_s1_patch_key(k): v for k, v in s1_names_np_dict.items()
-    }
-    s2_bands_dict = {
-        _tiff_name_to_ben_s2_patch_key(k): v for k, v in s2_names_np_dict.items()
-    }
-    return BigEarthNet_S1_S2_Patch(**s1_bands_dict, **s2_bands_dict, **kwargs)
+        s1_names_np_dict = read_ben_tiffs(s1_patch_dir)
+        s2_names_np_dict = read_ben_tiffs(s2_patch_dir)
+        s1_bands_dict = {
+            _tiff_name_to_ben_s1_patch_key(k): v for k, v in s1_names_np_dict.items()
+        }
+        s2_bands_dict = {
+            _tiff_name_to_ben_s2_patch_key(k): v for k, v in s2_names_np_dict.items()
+        }
+        return BigEarthNet_S1_S2_Patch(**s1_bands_dict, **s2_bands_dict, **kwargs)
 
+    return tiff_dirs_to_ben_s1_s2_patch
 
 @validate_arguments
 def _write_lmdb(
@@ -147,7 +146,7 @@ def write_S1_S2_lmdb(
 ):
     patch_paths_s2 = get_s2_patch_directories(ben_s2_path)
     _write_lmdb(patch_paths_s2,
-                lambda s2_patch_path, **kwargs : tiff_dirs_to_ben_s1_s2_patch(ben_s1_path, s2_patch_path, **kwargs),
+                gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path),
                 lmdb_path=lmdb_path,
                 **kwargs)
 
@@ -175,7 +174,7 @@ def write_S1_S2_lmdb_raw(ben_s1_directory_path: Path,
                          ben_s2_directory_path: Path,
                          **kwargs):
     """
-    Write an S2 lmdb file that only includes the patch name
+    Write a combined S1 and S2 lmdb file that only includes the patch name
     as the key and the patch array information as the value.
     """
     return write_S1_S2_lmdb(ben_s1_directory_path, ben_s2_directory_path, **kwargs)
@@ -210,8 +209,8 @@ def write_S1_S2_lmdb_with_lbls(ben_s1_directory_path: Path,
                                ben_s2_directory_path: Path,
                                **kwargs):
     """
-    Write an S2 lmdb file that only includes the patch name
-    as the key and the patch array information as the value.
+    Write a combined S1 and S2 lmdb file that includes the patch name
+    as the key and the patch array information, as well as the original and new label data as the value.
     """
     load_lbl_func = fc.partialler(load_labels_from_patch_path, is_sentinel2=True)
     return write_S1_S2_lmdb(ben_s1_directory_path,
