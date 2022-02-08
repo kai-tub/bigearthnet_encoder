@@ -2,7 +2,7 @@ from multiprocessing.sharedctypes import Value
 from pathlib import Path
 from tkinter.ttk import Progressbar
 import bigearthnet_common.constants as ben_constants
-from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories
+from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories, s2_to_s1_patch_name
 from pydantic import validate_arguments, DirectoryPath
 from typing import Dict, Any, Callable, List, Optional
 import typer
@@ -58,23 +58,22 @@ def tiff_dir_to_ben_s1_patch(patch_dir: DirectoryPath, **kwargs):
 
 
 @validate_arguments
-def tiff_dirs_to_ben_s1_s2_patch(
-    s1_patch_dir: DirectoryPath, s2_patch_dir: DirectoryPath, **kwargs
-):
-    s1_names_np_dict = read_ben_tiffs(s1_patch_dir)
-    s2_names_np_dict = read_ben_tiffs(s2_patch_dir)
-    s1_bands_dict = {
-        _tiff_name_to_ben_s2_patch_key(k): v for k, v in s1_names_np_dict.items()
-    }
-    s2_bands_dict = {
-        _tiff_name_to_ben_s2_patch_key(k): v for k, v in s2_names_np_dict.items()
-    }
-    return BigEarthNet_S1_S2_Patch(**s1_bands_dict, **s2_bands_dict, **kwargs)
+def gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path: DirectoryPath):
+    def tiff_dirs_to_ben_s1_s2_patch(s2_patch_dir: DirectoryPath, **kwargs):
+        s1_patch_name = s2_to_s1_patch_name(s2_patch_dir.name)
+        s1_patch_dir = ben_s1_path / s1_patch_name
 
+        s1_names_np_dict = read_ben_tiffs(s1_patch_dir)
+        s2_names_np_dict = read_ben_tiffs(s2_patch_dir)
+        s1_bands_dict = {
+            _tiff_name_to_ben_s1_patch_key(k): v for k, v in s1_names_np_dict.items()
+        }
+        s2_bands_dict = {
+            _tiff_name_to_ben_s2_patch_key(k): v for k, v in s2_names_np_dict.items()
+        }
+        return BigEarthNet_S1_S2_Patch(**s1_bands_dict, **s2_bands_dict, **kwargs)
 
-# TODO: Think about way to merge two directory sources together
-# maybe could work with other style
-
+    return tiff_dirs_to_ben_s1_s2_patch
 
 @validate_arguments
 def _write_lmdb(
@@ -137,6 +136,21 @@ def write_S1_lmdb(
     )
 
 
+@fc.delegates(_write_lmdb, but=["lmdb_path"])
+def write_S1_S2_lmdb(
+    ben_s1_path: DirectoryPath,
+    ben_s2_path: DirectoryPath,
+    /,
+    lmdb_path: Path = Path("S2_lmdb.db"),
+    **kwargs,
+):
+    patch_paths_s2 = get_s2_patch_directories(ben_s2_path)
+    _write_lmdb(patch_paths_s2,
+                gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path),
+                lmdb_path=lmdb_path,
+                **kwargs)
+
+
 @fc.delegates(write_S1_lmdb, but=["patch_path_to_metadata"])
 def write_S1_lmdb_raw(ben_s1_directory_path: Path, **kwargs):
     """
@@ -153,6 +167,17 @@ def write_S2_lmdb_raw(ben_s2_directory_path: Path, **kwargs):
     as the key and the patch array information as the value.
     """
     return write_S2_lmdb(ben_s2_directory_path, **kwargs)
+
+
+@fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
+def write_S1_S2_lmdb_raw(ben_s1_directory_path: Path,
+                         ben_s2_directory_path: Path,
+                         **kwargs):
+    """
+    Write a combined S1 and S2 lmdb file that only includes the patch name
+    as the key and the patch array information as the value.
+    """
+    return write_S1_S2_lmdb(ben_s1_directory_path, ben_s2_directory_path, **kwargs)
 
 
 @fc.delegates(write_S1_lmdb, but=["patch_path_to_metadata"])
@@ -179,12 +204,29 @@ def write_S2_lmdb_with_lbls(ben_s2_directory_path: Path, **kwargs):
     )
 
 
+@fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
+def write_S1_S2_lmdb_with_lbls(ben_s1_directory_path: Path,
+                               ben_s2_directory_path: Path,
+                               **kwargs):
+    """
+    Write a combined S1 and S2 lmdb file that includes the patch name
+    as the key and the patch array information, as well as the original and new label data as the value.
+    """
+    load_lbl_func = fc.partialler(load_labels_from_patch_path, is_sentinel2=True)
+    return write_S1_S2_lmdb(ben_s1_directory_path,
+                            ben_s2_directory_path,
+                            patch_path_to_metadata=load_lbl_func,
+                            **kwargs)
+
+
 def encoder_cli():
     app = typer.Typer()
     app.command()(write_S1_lmdb_raw)
     app.command()(write_S2_lmdb_raw)
+    app.command()(write_S1_S2_lmdb_raw)
     app.command()(write_S1_lmdb_with_lbls)
     app.command()(write_S2_lmdb_with_lbls)
+    app.command()(write_S1_S2_lmdb_with_lbls)
     app()
 
 
