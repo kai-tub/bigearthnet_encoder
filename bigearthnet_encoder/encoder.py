@@ -1,8 +1,10 @@
-from multiprocessing.sharedctypes import Value
 from pathlib import Path
-from tkinter.ttk import Progressbar
 import bigearthnet_common.constants as ben_constants
-from bigearthnet_common.base import get_s2_patch_directories, get_s1_patch_directories, s2_to_s1_patch_name
+from bigearthnet_common.base import (
+    get_s2_patch_directories,
+    get_s1_patch_directories,
+    s2_to_s1_patch_name,
+)
 from pydantic import validate_arguments, DirectoryPath
 from typing import Dict, Any, Callable, List, Optional
 import typer
@@ -20,8 +22,10 @@ from ._tif_reader import read_ben_tiffs
 __all__ = [
     "write_S2_lmdb",
     "write_S1_lmdb",
+    "write_S1_S2_lmdb",
     "tiff_dir_to_ben_s2_patch",
     "tiff_dir_to_ben_s1_patch",
+    "build_tiff_dirs_to_ben_s1_s2_patch_func",
 ]
 
 
@@ -44,22 +48,45 @@ def _tiff_name_to_ben_s1_patch_key(name: str) -> str:
 
 
 @validate_arguments
-def tiff_dir_to_ben_s2_patch(patch_dir: DirectoryPath, **kwargs):
+def tiff_dir_to_ben_s2_patch(
+    patch_dir: DirectoryPath, **kwargs
+) -> BigEarthNet_S2_Patch:
+    """
+    Process a Sentinel-2 directory path and create a `BigEarthNet_S2_Patch`
+    The keyword arguments will be passed in as extra metadata to the patch class.
+    """
     name_np_dict = read_ben_tiffs(patch_dir)
     bands_dict = {_tiff_name_to_ben_s2_patch_key(k): v for k, v in name_np_dict.items()}
     return BigEarthNet_S2_Patch(**bands_dict, **kwargs)
 
 
 @validate_arguments
-def tiff_dir_to_ben_s1_patch(patch_dir: DirectoryPath, **kwargs):
+def tiff_dir_to_ben_s1_patch(
+    patch_dir: DirectoryPath, **kwargs
+) -> BigEarthNet_S1_Patch:
+    """
+    Process a Sentinel-1 directory path and create a `BigEarthNet_S1_Patch`.
+    The keyword arguments will be passed in as extra metadata to the patch class.
+    """
     name_np_dict = read_ben_tiffs(patch_dir)
     bands_dict = {_tiff_name_to_ben_s1_patch_key(k): v for k, v in name_np_dict.items()}
     return BigEarthNet_S1_Patch(**bands_dict, **kwargs)
 
 
 @validate_arguments
-def gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path: DirectoryPath):
-    def tiff_dirs_to_ben_s1_s2_patch(s2_patch_dir: DirectoryPath, **kwargs):
+def build_tiff_dirs_to_ben_s1_s2_patch_func(ben_s1_path: DirectoryPath) -> Callable:
+    """
+    Given the path to the Sentinel-1 root directory, return a function that
+    builds a `BigEarthNet_S1_S2_Path` given a Sentinel-2 path.
+
+    This builder ensures that the same Sentinel-1 root path is used for all future
+    calls of the resulting function.
+    """
+
+    @validate_arguments
+    def tiff_dirs_to_ben_s1_s2_patch(
+        s2_patch_dir: DirectoryPath, **kwargs
+    ) -> BigEarthNet_S1_S2_Patch:
         s1_patch_name = s2_to_s1_patch_name(s2_patch_dir.name)
         s1_patch_dir = ben_s1_path / s1_patch_name
 
@@ -75,6 +102,7 @@ def gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path: DirectoryPath):
 
     return tiff_dirs_to_ben_s1_s2_patch
 
+
 @validate_arguments
 def _write_lmdb(
     patch_paths: List[DirectoryPath],
@@ -82,7 +110,17 @@ def _write_lmdb(
     lmdb_path: Path = Path("S2_lmdb.db"),
     patch_path_to_metadata: Optional[Callable[[DirectoryPath], Dict[str, Any]]] = None,
     chunk_size: int = 50_000,
-):
+) -> None:
+    """
+    The function writes an LMDB archive.
+    A list of patch paths is processed by calling the `patch_builder` individually.
+    The output archive is written to `lmdb_path`.
+    A `patch_path_to_metadata` function can be provided that returns a metadata dictionary,
+    which will be embedded into the `patch_builder` call.
+    The `chunk_size` ensure that after processing `chunk_size` patches the output
+    is written to disk and the memory is freed.
+    If the process fails due to memory issues, decrease the `chunk_size`!
+    """
     if len(patch_paths) == 0:
         raise ValueError(
             "No patches were provided! Maybe provided wrong Sentinel directory?"
@@ -118,7 +156,7 @@ def write_S2_lmdb(
     /,
     lmdb_path: Path = Path("S2_lmdb.db"),
     **kwargs,
-):
+) -> None:
     patch_paths = get_s2_patch_directories(ben_s2_path)
     _write_lmdb(patch_paths, tiff_dir_to_ben_s2_patch, lmdb_path=lmdb_path, **kwargs)
 
@@ -126,7 +164,7 @@ def write_S2_lmdb(
 @fc.delegates(_write_lmdb, but=["lmdb_path"])
 def write_S1_lmdb(
     ben_s1_path: DirectoryPath, /, lmdb_path: Path = Path("S1_lmdb.db"), **kwargs
-):
+) -> None:
     patch_paths = get_s1_patch_directories(ben_s1_path)
     _write_lmdb(
         patch_paths,
@@ -143,48 +181,58 @@ def write_S1_S2_lmdb(
     /,
     lmdb_path: Path = Path("S2_lmdb.db"),
     **kwargs,
-):
+) -> None:
     patch_paths_s2 = get_s2_patch_directories(ben_s2_path)
-    _write_lmdb(patch_paths_s2,
-                gen_func_tiff_dirs_to_ben_s1_s2_patch(ben_s1_path),
-                lmdb_path=lmdb_path,
-                **kwargs)
+    _write_lmdb(
+        patch_paths_s2,
+        build_tiff_dirs_to_ben_s1_s2_patch_func(ben_s1_path),
+        lmdb_path=lmdb_path,
+        **kwargs,
+    )
 
 
 @fc.delegates(write_S1_lmdb, but=["patch_path_to_metadata"])
-def write_S1_lmdb_raw(ben_s1_directory_path: Path, **kwargs):
+def write_S1_lmdb_raw(ben_s1_directory_path: Path, **kwargs) -> None:
     """
     Write an S1 lmdb file that only includes the patch name
     as the key and the patch array information as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     return write_S1_lmdb(ben_s1_directory_path, **kwargs)
 
 
 @fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
-def write_S2_lmdb_raw(ben_s2_directory_path: Path, **kwargs):
+def write_S2_lmdb_raw(ben_s2_directory_path: Path, **kwargs) -> None:
     """
     Write an S2 lmdb file that only includes the patch name
     as the key and the patch array information as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     return write_S2_lmdb(ben_s2_directory_path, **kwargs)
 
 
 @fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
-def write_S1_S2_lmdb_raw(ben_s1_directory_path: Path,
-                         ben_s2_directory_path: Path,
-                         **kwargs):
+def write_S1_S2_lmdb_raw(
+    ben_s1_directory_path: Path, ben_s2_directory_path: Path, **kwargs
+) -> None:
     """
     Write a combined S1 and S2 lmdb file that only includes the patch name
     as the key and the patch array information as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     return write_S1_S2_lmdb(ben_s1_directory_path, ben_s2_directory_path, **kwargs)
 
 
 @fc.delegates(write_S1_lmdb, but=["patch_path_to_metadata"])
-def write_S1_lmdb_with_lbls(ben_s1_directory_path: Path, **kwargs):
+def write_S1_lmdb_with_lbls(ben_s1_directory_path: Path, **kwargs) -> None:
     """
     Write an S1 lmdb file that includes the patch name
     as the key and the patch array information, as well as the original and new label data as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     load_lbl_func = fc.partialler(load_labels_from_patch_path, is_sentinel2=False)
     return write_S1_lmdb(
@@ -193,10 +241,12 @@ def write_S1_lmdb_with_lbls(ben_s1_directory_path: Path, **kwargs):
 
 
 @fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
-def write_S2_lmdb_with_lbls(ben_s2_directory_path: Path, **kwargs):
+def write_S2_lmdb_with_lbls(ben_s2_directory_path: Path, **kwargs) -> None:
     """
     Write an S2 lmdb file that includes the patch name
     as the key and the patch array information, as well as the original and new label data as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     load_lbl_func = fc.partialler(load_labels_from_patch_path, is_sentinel2=True)
     return write_S2_lmdb(
@@ -205,21 +255,25 @@ def write_S2_lmdb_with_lbls(ben_s2_directory_path: Path, **kwargs):
 
 
 @fc.delegates(write_S2_lmdb, but=["patch_path_to_metadata"])
-def write_S1_S2_lmdb_with_lbls(ben_s1_directory_path: Path,
-                               ben_s2_directory_path: Path,
-                               **kwargs):
+def write_S1_S2_lmdb_with_lbls(
+    ben_s1_directory_path: Path, ben_s2_directory_path: Path, **kwargs
+) -> None:
     """
     Write a combined S1 and S2 lmdb file that includes the patch name
     as the key and the patch array information, as well as the original and new label data as the value.
+
+    If the process fails due to memory issues, decrease the `chunk_size`!
     """
     load_lbl_func = fc.partialler(load_labels_from_patch_path, is_sentinel2=True)
-    return write_S1_S2_lmdb(ben_s1_directory_path,
-                            ben_s2_directory_path,
-                            patch_path_to_metadata=load_lbl_func,
-                            **kwargs)
+    return write_S1_S2_lmdb(
+        ben_s1_directory_path,
+        ben_s2_directory_path,
+        patch_path_to_metadata=load_lbl_func,
+        **kwargs,
+    )
 
 
-def encoder_cli():
+def encoder_cli() -> None:
     app = typer.Typer()
     app.command()(write_S1_lmdb_raw)
     app.command()(write_S2_lmdb_raw)
