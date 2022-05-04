@@ -1,5 +1,5 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from bigearthnet_encoder.metadata_utils import *
 

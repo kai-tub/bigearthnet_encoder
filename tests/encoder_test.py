@@ -1,23 +1,24 @@
+import tempfile
+from pathlib import Path
+
 import lmdb
 import pytest
 from bigearthnet_common.constants import BEN_S1_RE, BEN_S2_RE
-from bigearthnet_encoder.encoder import *
-from pathlib import Path
-import tempfile
+from bigearthnet_patch_interface.merged_interface import BigEarthNet_S1_S2_Patch
 from bigearthnet_patch_interface.s1_interface import BigEarthNet_S1_Patch
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
-from bigearthnet_patch_interface.merged_interface import BigEarthNet_S1_S2_Patch
 
+from bigearthnet_encoder.encoder import *
 from bigearthnet_encoder.encoder import (
-    write_S1_lmdb_raw,
-    write_S2_lmdb_raw,
-    write_S1_S2_lmdb_raw,
-    write_S2_lmdb,
-    write_S1_lmdb,
-    write_S1_lmdb_with_lbls,
-    write_S2_lmdb_with_lbls,
-    write_S1_S2_lmdb_with_lbls,
     _write_lmdb,
+    write_S1_lmdb,
+    write_S1_lmdb_raw,
+    write_S1_lmdb_with_lbls,
+    write_S1_S2_lmdb_raw,
+    write_S1_S2_lmdb_with_lbls,
+    write_S2_lmdb,
+    write_S2_lmdb_raw,
+    write_S2_lmdb_with_lbls,
 )
 
 TEST_S2_ROOT = Path(__file__).parent / "s2-tiny"

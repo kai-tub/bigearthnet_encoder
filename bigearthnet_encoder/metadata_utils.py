@@ -1,8 +1,8 @@
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
-from bigearthnet_common.base import read_S1_json, read_S2_json, old2new_labels
-from pydantic import DirectoryPath, validate_arguments, FilePath
 import pandas as pd
+from bigearthnet_common.base import old2new_labels, read_S1_json, read_S2_json
+from pydantic import DirectoryPath, FilePath, validate_arguments
 
 
 @validate_arguments
