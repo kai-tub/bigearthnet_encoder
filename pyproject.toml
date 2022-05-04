@@ -1,46 +1,54 @@
 [tool.poetry]
 name = "bigearthnet_encoder"
 version = "0.1.0"
-description = "A new flexible bigearthnet encoder"
-authors = ["Kai Norman Clasen <snakemap_navigation@protonmail.com>"]
-license = "Apache-2.0"
+description = "A flexible BigEarthNet encoder that allows one to quickly convert BigEarthNet to a DL-optimization data format."
+authors = ["Kai Norman Clasen <k.clasen@protonmail.com>"]
+license = "MIT license"
 readme = "README.md"
-# homepage = "https://github.com/kai-tub/common_nb_preprocessors"
-# repository = "https://github.com/kai-tub/common_nb_preprocessors"
-# documentation = "https://kai-tub.github.io/common_nb_preprocessors/"
-# keywords = ["jupyter", "notebook", "nbconvert", "preprocessor", "tags"]
+homepage = "https://github.com/kai-tub/bigearthnet_encoder/"
+repository = "https://github.com/kai-tub/bigearthnet_encoder/"
+
+documentation = "https://github.com/kai-tub.github.io/bigearthnet_encoder"
+
 include = [
     "LICENSE",
 ]
 
-
 [tool.poetry.dependencies]
-python = "^3.8.0"
+# TODO: Find a better way to set these values!
+python = "^3.8"
 numpy = "^1.19"
 lmdb = "^1.3.0"
 pydantic = "^1.9.0"
 fastcore = "^1.3.27"
 rasterio = "^1.2.10"
-bigearthnet-patch-interface = {git = "https://github.com/kai-tub/bigearthnet_patch_interface", rev = "main"}
-rich = "^10.16.2"
+bigearthnet-patch-interface = "^0.1"
+rich = "^10|^11|^12|^13"
 bigearthnet-common = "^2"
 pandas = "^1.3.5"
+# torch = "^1.10.1"
+# pyarrow = "^6.0.1"
+# geopandas = "^0.10.2"
+# matplotlib = "^3.5.1"
+# leafmap = "^0.7.5"
+# mapclassify = "^2.4.3"
 
 [tool.poetry.dev-dependencies]
-pytest = "*"
 black = "*"
 isort = "*"
-ipykernel = "^6.6.0"
-nbmake = "^1.1"
-nbstripout = "^0.5.0"
-rasterio = "*"
-pytest-benchmark = "^3.4.1"
-torch = "^1.10.1"
-pyarrow = "^6.0.1"
-geopandas = "^0.10.2"
-matplotlib = "^3.5.1"
-leafmap = "^0.7.5"
-mapclassify = "^2.4.3"
+pytest = "*"
+Sphinx = "^4.5"
+furo = "*"
+livereload = "*"
+sphinx-external-toc = "*"
+pre-commit = "*"
+myst-nb = "0.14"
+ipykernel = "*"
+linkify-it-py = "*"
+pyarrow = "^7.0.0"
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

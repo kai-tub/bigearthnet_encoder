@@ -1,10 +1,11 @@
+from pathlib import Path
+from typing import Dict, Optional
+
+import fastcore.all as fc
+import natsort
 import numpy as np
 import rasterio
-from pathlib import Path
-import fastcore.all as fc
-from pydantic import validate_arguments, FilePath, DirectoryPath
-from typing import Optional, Dict
-import natsort
+from pydantic import DirectoryPath, FilePath, validate_arguments
 
 __all__ = ["read_tif", "read_ben_tif", "read_ben_tiffs"]
 

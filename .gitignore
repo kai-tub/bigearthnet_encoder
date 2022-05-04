@@ -1,11 +1,11 @@
-visualizer.ipynb
-tests/BigEarthNet-S2
-wip.ipynb
-tiny.db/
-ben_encoder_env/
+tmp.*
+wip.*
+# Personal often required
+docs/jupyter_execute/
 .vscode/
+###
+
 # hide this for now
-tiny.parquet
 *.bak
 .gitattributes
 .last_checked
@@ -18,13 +18,12 @@ _tmp*
 tmp*
 tags
 node_modules/
-tmp.*
+*.parquet
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.parquet
 
 # C extensions
 *.so
@@ -85,7 +84,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+docs/_build/*
+!docs/_build/.nojekyll
 
 # PyBuilder
 target/

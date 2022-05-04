@@ -1,28 +1,12 @@
 # BigEarthNet Encoder
 
-Uses
-- [BigEarthNet-Patch-Interface](https://github.com/kai-tub/bigearthnet_patch_interface)
-    - Interface that is used to combine all data points into a single structure
-    - Each instance will encode itself via pickle and is ready to be inserted into a database and unpickled without any dependencies
-- LMDB to write the database with the patch-name as the key
+The goal of the BigEarthNet Encoder library is to quickly transform the original BigEarthNet archive to a deep-learning optimized format.
+The long-term goal is to support multiple output formats.
 
-```
-ben_encoder write-s<1,2>-lmdb-raw <PATH TO BEN DIRECTORY> <OUTPUT PATH>
-```
+To simplify the process of working with BigEarthNet, each patch is first converted to a [BigEarthNet-Patch-Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/).
+This interface will guarantee that the data is complete and valid before moving on to creating desired format.
+The patch-data is internally stored as an numpy array to keep the data in an deep-learning framework agnostic format.
 
-The library supports easy construction of an LMDB archive with the old 43-label and the newer 19-label nomenclature as the metadata.
+The library should provide all the necessary functionality via a CLI to allow for quick conversion without requiring to understand the details of the conversion process.
 
-```
-ben_encoder write-s<1,2>-lmdb-with-labels <PATH TO BEN DIRECTORY> <OUTPUT PATH>
-```
-
-_Could_ be combined with:
-- [ben_gdf_builder](https://github.com/kai-tub/bigearthnet_common)
-    - Allows to easily extend the database with complex metadata
-
-## Installation
-While the library and the patch interface are still in development, install the library directly from git:
-
-```sh
-python -m pip install --ignore-installed git+https://github.com/kai-tub/bigearthnet_encoder.git
-```
+As of now, the only supported target format is the LMDB archive format.
