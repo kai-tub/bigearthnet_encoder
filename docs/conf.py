@@ -34,7 +34,7 @@ extensions = [
     "sphinx.ext.autodoc",
     # Other popular choices:
     # "myst_parser",
-    # "sphinxcontrib.mermaid",
+    "sphinxcontrib.mermaid",
     # "sphinx_design",
     # "sphinx_inline_tabs",
     # "sphinx_comments",
@@ -42,6 +42,14 @@ extensions = [
     # "sphinxcontrib.bibtex",
 ]
 external_toc_path = "_toc.yml"
+
+# intersphinx_mapping = {
+#     "BenInterface": ("https://docs.kai-tub.tech/bigearthnet_patch_interface/", None)
+# }
+
+myst_substitutions = {
+    "BenInterface": "[BigEarthNet Patch Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/)"
+}
 
 myst_enable_extensions = [
     "colon_fence",
