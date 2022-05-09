@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="LMDB" href="05_lmdb.html" /><link rel="prev" title="BigEarthNet Encoder" href="intro.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Conversion process" href="02_conversion_process.html" /><link rel="prev" title="BigEarthNet Encoder" href="intro.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
         <title>General - BigEarthNet Encoder documentation</title>
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -158,6 +158,7 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">General</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_conversion_process.html">Conversion process</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_lmdb.html">LMDB</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_encoder.html">API Encoder</a></li>
@@ -189,7 +190,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -197,13 +198,103 @@
         <article role="main">
           <section class="tex2jax_ignore mathjax_ignore" id="general">
 <h1>General<a class="headerlink" href="#general" title="Permalink to this headline">#</a></h1>
-<p>The encoder library provides a couple of functions to quickly convert the original BigEarthNet directories to the desired BigEarthNet-Patch-Interface.</p>
-<p>The specific functions are:</p>
+<div class="important admonition">
+<p class="admonition-title">TL;DR</p>
+<p>Loading raw BigEarthNet data is slow and <em>has</em> to be converted to a different deep-learning optimized archive for faster training.
+The following points must be considered when converting the data:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="api_encoder.html#bigearthnet_encoder.encoder.tiff_dir_to_ben_s1_patch" title="bigearthnet_encoder.encoder.tiff_dir_to_ben_s1_patch"><code class="xref any py py-func docutils literal notranslate"><span class="pre">tiff_dir_to_ben_s1_patch</span></code></a></p></li>
-<li><p><a class="reference internal" href="api_encoder.html#bigearthnet_encoder.encoder.tiff_dir_to_ben_s2_patch" title="bigearthnet_encoder.encoder.tiff_dir_to_ben_s2_patch"><code class="xref any py py-func docutils literal notranslate"><span class="pre">tiff_dir_to_ben_s2_patch</span></code></a></p></li>
+<li><p>The bands have different resolutions</p>
+<ul>
+<li><p>Pre-interpolating allows for faster reading <em>but</em> less flexibility</p></li>
 </ul>
-<p>To read the TIFF files the data has to be read with <code class="docutils literal notranslate"><span class="pre">rasterio</span></code>.</p>
+</li>
+<li><p>The bands are not equally important</p>
+<ul>
+<li><p>It is common to not use the 60m bands as they <em>often</em> contribute little to the overall performance</p></li>
+</ul>
+</li>
+<li><p>The output format should be easy to work with</p></li>
+</ul>
+</div>
+<p>One crucial component of reducing the training time is minimizing data access.
+There are <em>many</em> different approaches with their pros and cons.
+This section assembles a couple of popular approaches and discusses possible shortcomings.</p>
+<p>The assumption is that the data loading procedure is slow and becomes a bottleneck during training.
+Looking at the structure of the data, we can identify three possible issues:</p>
+<ol class="arabic simple">
+<li><p>Provided patches are slow to be read</p>
+<ul class="simple">
+<li><p>The data is split across multiple files. Each band is stored separately because of the different spatial resolution</p></li>
+<li><p>Each <code class="docutils literal notranslate"><span class="pre">tif</span></code> (<a class="reference external" href="https://en.wikipedia.org/wiki/GeoTIFF">GeoTIFF</a>) file contains unnecessary metadata for the training of deep neural networks</p></li>
+</ul>
+</li>
+<li><p>Images need to be converted before passing through common deep learning pipelines</p>
+<ul class="simple">
+<li><p>Data is stored as <code class="docutils literal notranslate"><span class="pre">uint16</span></code>; most libraries require <code class="docutils literal notranslate"><span class="pre">float32</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+</ul>
+</li>
+<li><p>Lower resolution bands need to be interpolated if they should be converted to a <em>tensor-like</em> structure</p></li>
+</ol>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">#</a></h2>
+<p>Many tutorials compare and discuss libraries for converting the data into a different format or storing it in a database to optimize the access but are often not well-suited for our heterogeneous satellite data.</p>
+<p>To allow us to work with the multi-spectral satellite data flexibly, we have the following requirements:</p>
+<section id="flexible-loading-of-different-channels">
+<h3>Flexible loading of different channels<a class="headerlink" href="#flexible-loading-of-different-channels" title="Permalink to this headline">#</a></h3>
+<p>Initial experiments are often performed on the RGB-only bands to re-use code from other projects/papers that were originally created for the CV domain.
+Some experiments may only load the 10m and 20m bands, as the 60m bands <em>often</em> have negligible impact on the performance.
+Dropping these bands allows training with larger batches, reducing training time.
+This requirement is orthogonal to point <code class="docutils literal notranslate"><span class="pre">3</span></code> of the possible bottlenecks during data loading.</p>
+<p>For large scale benchmark runs, it would be beneficial to pre-process the individual bands, i.e.:</p>
+<ul class="simple">
+<li><p>Interpolate to a common dimensionality</p></li>
+<li><p>Drop unused bands</p></li>
+<li><p>Convert from <code class="docutils literal notranslate"><span class="pre">uint16</span></code> to <code class="docutils literal notranslate"><span class="pre">float32</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+</ul>
+<p>But for most scenarios, the decreased flexibility is a big issue.
+To keep the data as accessible as possible for future use, the data should be as close as possible to the <em>original</em> satellite data as possible.</p>
+</section>
+<section id="easy-to-use-output-archive">
+<h3>Easy to use output archive<a class="headerlink" href="#easy-to-use-output-archive" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>Colleagues should be able to <em>just start</em> working with the converted archive without having to know the details of the conversion process.</p></li>
+<li><p>Do not require heavy external binaries when accessing archive</p>
+<ul>
+<li><p>rasterio is complicated to install/brings many hard dependencies with it</p></li>
+</ul>
+</li>
+<li><p>Do not require any <em>real</em> database connections/databases</p></li>
+</ul>
+</section>
+<section id="deep-learning-library-agnostic">
+<h3>Deep-Learning Library agnostic<a class="headerlink" href="#deep-learning-library-agnostic" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>Should work with tensor-flow, pytorch or even more exotic interfaces</p></li>
+</ul>
+</section>
+<section id="embedding-of-metadata-retracted">
+<h3>Embedding of metadata (Retracted)<a class="headerlink" href="#embedding-of-metadata-retracted" title="Permalink to this headline">#</a></h3>
+<p>Besides the 19-class nomenclature, some experiments could also be performed on the 43-class nomenclature for comparison with other papers.
+Or geographic metadata about each patch could be used for <em>remote-sensing</em> specific training strategies.
+As satellite data has rich metadata, it would be nice to have an easy way to store the metadata <em>within</em> the converted output format.</p>
+<section id="reasons-why-metadata-embedding-is-not-important">
+<h4>Reasons why metadata embedding is not important<a class="headerlink" href="#reasons-why-metadata-embedding-is-not-important" title="Permalink to this headline">#</a></h4>
+<p>After spending some more time working with satellite data and deep-learning, I personally think that this isn’t as important as I initially thought.
+It is often <em>easier</em> and more flexible to keep the metadata separate.</p>
+<p>For example: If we do some smart geographic location-based sampling, the metadata has to be available at the start of the epoch to calculate what images should be sampled.
+If the metadata is <em>embedded</em> with the image data in a common structure, the image data would probably have to be loaded even if it isn’t necessary.
+Some libraries allow metadata reading without loading the images, but this is generally not true for <em>key-value storages</em>.</p>
+</section>
+</section>
+</section>
+<section id="candidates">
+<h2>Candidates<a class="headerlink" href="#candidates" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://realpython.com/storing-images-in-python/#reading-from-lmdb">LMDB</a></p></li>
+<li><p>H5PY</p></li>
+<li><p><a class="reference external" href="https://ffcv.io/">FFCV</a></p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -211,12 +302,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="05_lmdb.html">
+          <a class="next-page" href="02_conversion_process.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">LMDB</div>
+                <div class="title">Conversion process</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -256,8 +347,37 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">General</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#flexible-loading-of-different-channels">Flexible loading of different channels</a></li>
+<li><a class="reference internal" href="#easy-to-use-output-archive">Easy to use output archive</a></li>
+<li><a class="reference internal" href="#deep-learning-library-agnostic">Deep-Learning Library agnostic</a></li>
+<li><a class="reference internal" href="#embedding-of-metadata-retracted">Embedding of metadata (Retracted)</a><ul>
+<li><a class="reference internal" href="#reasons-why-metadata-embedding-is-not-important">Reasons why metadata embedding is not important</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#candidates">Candidates</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
@@ -272,5 +392,7 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="_static/togglebutton.js"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>

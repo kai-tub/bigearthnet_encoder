@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API" href="api.html" /><link rel="prev" title="General" href="00_general.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API" href="api.html" /><link rel="prev" title="Conversion process" href="02_conversion_process.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
         <title>LMDB - BigEarthNet Encoder documentation</title>
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -158,6 +158,7 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="00_general.html">General</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_conversion_process.html">Conversion process</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">LMDB</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_encoder.html">API Encoder</a></li>
@@ -189,14 +190,14 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
           <section class="tex2jax_ignore mathjax_ignore" id="lmdb">
-<h1>LMDB<a class="headerlink" href="#lmdb" title="Permalink to this headline">#</a></h1>
+<span id="id1"></span><h1>LMDB<a class="headerlink" href="#lmdb" title="Permalink to this headline">#</a></h1>
 <p><a class="reference external" href="https://www.symas.com/lmdb">LMDB</a> (Lightning Memory-Mapped Database) is a key-value storage format where each entry is stored as a byte array.
 Like a Python dictionary, the key must be unique and the value can be any object.
 In the Python domain, the keys/values are usually <em>pickled</em> to serialize the data to the binary format expected by LMDB.</p>
@@ -223,6 +224,36 @@ In the Python domain, the keys/values are usually <em>pickled</em> to serialize 
 </div>
 <p>To access the values, the pickled data has to be loaded with <code class="docutils literal notranslate"><span class="pre">BigEarthNet_S1_Patch.load</span></code>.</p>
 <p>After creating the archive, the archive should have restriced write access, to ensure that the data isn’t accidentally touched.</p>
+<section id="short-comings">
+<h2>Short-comings<a class="headerlink" href="#short-comings" title="Permalink to this headline">#</a></h2>
+<p>There are a couple of issues with the LMDB approach.</p>
+<ul class="simple">
+<li><p>LMDB reads the entire data when given a key</p>
+<ul>
+<li><p>If all 12 bands are encoded, all 12 bands are always read even if only 3 or 10 are required</p></li>
+<li><p>To optimize read performance, there would have to be multiple archives with the <em>minimum</em> data for the specific task</p></li>
+</ul>
+</li>
+<li><p>Requires to <em>know</em> what is being read</p>
+<ul>
+<li><p>The data is encoded as a binary stream and requires the user to know how to <em>unpickle</em> the data</p></li>
+<li><p>Here, the <a class="reference external" href="https://docs.kai-tub.tech/bigearthnet_patch_interface/">BigEarthNet Patch Interface</a> library has to be installed</p></li>
+</ul>
+</li>
+<li><p>Hard to get optimal read performance with <em>batched</em> input data</p>
+<ul>
+<li><p>PyTorch style data loading will create a new connection to the LMDB archive for <em>each</em> image file and not use a single one for the entire batch</p></li>
+<li><p><em>Could</em> be fixed by writing specialized dataloader but is not trivial</p></li>
+</ul>
+</li>
+<li><p>Not easy to control caching behavior</p>
+<ul>
+<li><p>No way to enforce to read entire archive into RAM for maximum read performance (at least I couldn’t figure it out)</p></li>
+</ul>
+</li>
+<li><p>Relatively hard-to-read documentation (personal opinion)</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -239,14 +270,14 @@ In the Python domain, the keys/values are usually <em>pickled</em> to serialize 
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="00_general.html">
+          <a class="prev-page" href="02_conversion_process.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">General</div>
+                <div class="title">Conversion process</div>
                 
               </div>
             </a>
@@ -275,8 +306,27 @@ In the Python domain, the keys/values are usually <em>pickled</em> to serialize 
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">LMDB</a><ul>
+<li><a class="reference internal" href="#short-comings">Short-comings</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
@@ -291,5 +341,7 @@ In the Python domain, the keys/values are usually <em>pickled</em> to serialize 
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="_static/togglebutton.js"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
 </html>
