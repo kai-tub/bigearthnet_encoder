@@ -46,6 +46,7 @@ myst-nb = "0.14"
 ipykernel = "*"
 linkify-it-py = "*"
 pyarrow = "^7.0.0"
+sphinxcontrib-mermaid = "^0.7.1"
 
 [tool.isort]
 profile = "black"
