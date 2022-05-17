@@ -16,7 +16,7 @@ include = [
 
 [tool.poetry.dependencies]
 # TODO: Find a better way to set these values!
-python = "^3.8"
+python = ">=3.8,<=3.10"
 numpy = "^1.19"
 lmdb = "^1.3.0"
 pydantic = "^1.9.0"
@@ -32,6 +32,7 @@ pandas = "^1.3.5"
 # leafmap = "^0.7.5"
 # mapclassify = "^2.4.3"
 rasterio = {version = "^1.2.10", allow-prereleases = true}
+rich-click = {extras = ["typer"], version = "^1.3.2"}
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -42,11 +43,17 @@ furo = "*"
 livereload = "*"
 sphinx-external-toc = "*"
 pre-commit = "*"
-myst-nb = "0.14"
+myst-nb = "^0.15"
 ipykernel = "*"
 linkify-it-py = "*"
 pyarrow = "^7.0.0"
 sphinxcontrib-mermaid = "^0.7.1"
+torch = "^1.11.0"
+scikit-image = "^0.19.2"
+matplotlib = "^3.5.2"
+ipywidgets = "^7.7.0"
+sphinx-cli-recorder = "^0.1.5"
+icecream = "^2.1.2"
 
 [tool.isort]
 profile = "black"
