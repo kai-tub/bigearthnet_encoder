@@ -35,6 +35,7 @@ extensions = [
     # Other popular choices:
     # "myst_parser",
     "sphinxcontrib.mermaid",
+    "sphinx_cli_recorder",
     # "sphinx_design",
     # "sphinx_inline_tabs",
     # "sphinx_comments",

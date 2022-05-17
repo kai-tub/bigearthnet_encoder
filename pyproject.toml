@@ -52,6 +52,8 @@ torch = "^1.11.0"
 scikit-image = "^0.19.2"
 matplotlib = "^3.5.2"
 ipywidgets = "^7.7.0"
+sphinx-cli-recorder = "^0.1.5"
+icecream = "^2.1.2"
 
 [tool.isort]
 profile = "black"

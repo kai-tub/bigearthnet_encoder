@@ -19,6 +19,12 @@ ben_encoder write-s<1,2>-lmdb-raw <PATH TO BEN DIRECTORY> <OUTPUT PATH>
 ben_encoder write-s<1,2>-lmdb-with-labels <PATH TO BEN DIRECTORY> <OUTPUT PATH>
 ```
 
+:::{record_cli_cmd} ben_encoder --help
+:rows: 40
+:autoplay: "true"
+
+:::
+
 To access the values, the pickled data has to be loaded with `BigEarthNet_S1_Patch.loads`.
 
 After creating the archive, the archive should have restricted write access to ensure that the data isn't accidentally touched.
