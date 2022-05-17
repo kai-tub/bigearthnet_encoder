@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 import bigearthnet_common.constants as ben_constants
 import fastcore.all as fc
 import lmdb
-import typer
+import rich_click.typer as typer
 from bigearthnet_common.base import (
     get_s1_patch_directories,
     get_s2_patch_directories,
