@@ -1,0 +1,211 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# LMDB Usage Example"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bigearthnet_encoder.encoder import write_S2_lmdb_with_lbls\n",
+    "from bigearthnet_common.example_data import get_s2_example_folder_path\n",
+    "\n",
+    "# generate tiny LMDB archive\n",
+    "s2_path = get_s2_example_folder_path()\n",
+    "write_S2_lmdb_with_lbls(s2_path)\n",
+    "example_patch = [p.name for p in s2_path.iterdir()][0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pathlib import Path\n",
+    "from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch\n",
+    "\n",
+    "p = Path(\"S2_lmdb.db\")\n",
+    "assert p.exists()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import lmdb\n",
+    "\n",
+    "import numpy as np\n",
+    "\n",
+    "# readahead should be True if dataset fits in RAM\n",
+    "# otherwise it may be faster to set readahead = False\n",
+    "# as readonly=True no need for `locking` which _should_ take longer if lock=True\n",
+    "env = lmdb.open(str(p), readonly=True, readahead=True, lock=False)\n",
+    "# possible optimization use single call to\n",
+    "# getmulti(keys) instead of a new thread with a single element as transaction?\n",
+    "\n",
+    "with env.begin() as txn:\n",
+    "    byteflow = txn.get(example_patch.encode(\"utf-8\"))\n",
+    "    s2_patch = BigEarthNet_S2_Patch.loads(byteflow)\n",
+    "\n",
+    "bands_10m = s2_patch.get_stacked_10m_bands()\n",
+    "bands_20m = s2_patch.get_stacked_20m_bands()\n",
+    "\n",
+    "# interpolate to 10m dimension"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A common next step is to interpolate the data into a common size.\n",
+    "There are quite a few ways to interpolate the bands, two popular approaches are:\n",
+    "- [skimage.transform.resize](https://scikit-image.org/docs/dev/api/skimage.transform.html#resize)\n",
+    "- [torch.nn.functional.interpolate](https://pytorch.org/docs/stable/generated/torch.nn.functional.interpolate.html)\n",
+    "\n",
+    "A couple of quick notes about torch:\n",
+    "- requires data to be 'batched'\n",
+    "- we use `mode=bicubic`\n",
+    "    - further analysis could maybe show that a faster method works just as well\n",
+    "- interpolation uses edge value padding for out-of-boundary values\n",
+    "\n",
+    "And a couple of notes about skimage:\n",
+    "- requires channel dimension to be _last_ (Width x Height x Channel)\n",
+    "- order=3 should be equal to `bi-cubic` according to [warp](https://scikit-image.org/docs/dev/api/skimage.transform.html#skimage.transform.warp) documentation\n",
+    "\n",
+    "And in general:\n",
+    "- Data needs to be converted to `float32`\n",
+    "\n",
+    "One issue is that the output values are _not_ identical.\n",
+    "But the visual output looks very similar and I cannot see any visual differences."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from torch import Tensor\n",
+    "from torch.nn.functional import interpolate\n",
+    "import skimage"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%timeit\n",
+    "# 3 == bicubic\n",
+    "bands_20m_sa = np.float32(np.moveaxis(bands_20m, 0, -1))\n",
+    "bands_20m_interp = skimage.transform.resize(\n",
+    "    bands_20m_sa, (120, 120, 6), order=3, mode=\"edge\"\n",
+    ")\n",
+    "bands_20m_interp = np.moveaxis(bands_20m_interp, -1, 0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%timeit\n",
+    "# applies edge-padding to the input shape\n",
+    "# single \"batch\"\n",
+    "bands_10m_torch = Tensor(np.float32(bands_10m)).unsqueeze(dim=0)\n",
+    "bands_20m_torch = Tensor(np.float32(bands_20m)).unsqueeze(dim=0)\n",
+    "\n",
+    "bands_20m_interp = interpolate(\n",
+    "    bands_20m_torch,\n",
+    "    bands_10m.shape[-2:],\n",
+    "    mode=\"bicubic\",\n",
+    ")\n",
+    "bands_20m_interp.shape"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "As we can see here, the PyTorch implementation is _a lot_ faster than the skimage implementation.\n",
+    "On my local machine the PyTorch implementation is 10x faster!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "bands_10m_torch = Tensor(np.float32(bands_10m)).unsqueeze(dim=0)\n",
+    "bands_20m_torch = Tensor(np.float32(bands_20m)).unsqueeze(dim=0)\n",
+    "\n",
+    "bands_20m_interp = interpolate(bands_20m_torch, bands_10m.shape[-2:], mode=\"bicubic\")\n",
+    "plt.imshow(bands_20m_interp[0][0], cmap=\"gray\")\n",
+    "plt.title(\"Torch interpolate (bicubic)\")\n",
+    "plt.axis(\"off\");"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "bands_20m_sa = np.float32(np.moveaxis(bands_20m, 0, -1))\n",
+    "bands_20m_interp = skimage.transform.resize(\n",
+    "    bands_20m_sa, (120, 120, 6), order=3, mode=\"edge\"\n",
+    ")\n",
+    "bands_20m_interp = np.moveaxis(bands_20m_interp, -1, 0)\n",
+    "\n",
+    "plt.imshow(bands_20m_interp[0], cmap=\"gray\")\n",
+    "plt.title(\"Skimage resize (bicubic)\")\n",
+    "plt.axis(\"off\");"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "interpreter": {
+   "hash": "1cd77a3d0626c541194178d938a490eb8e66024b704a0471b646ad79929cad0c"
+  },
+  "kernelspec": {
+   "display_name": "Python 3.9.10 ('bigearthnet-encoder-VfPIM1yZ-py3.9')",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.10"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
