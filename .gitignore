@@ -4,6 +4,7 @@ wip.*
 docs/jupyter_execute/
 .vscode/
 ###
+*_lmdb.db
 
 # hide this for now
 *.bak
