@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bigearthnet_encoder"
-version = "0.2.0"
+version = "0.2.1"
 description = "A flexible BigEarthNet encoder that allows one to quickly convert BigEarthNet to a DL-optimization data format."
 authors = ["Kai Norman Clasen <k.clasen@protonmail.com>"]
 license = "MIT license"

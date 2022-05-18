@@ -1,3 +1,15 @@
+# v0.2.1 (Wed May 18 2022)
+
+#### 🐛 Bug Fix
+
+- Fix python specification in pyproject [#19](https://github.com/kai-tub/bigearthnet_encoder/pull/19) ([@kai-tub](https://github.com/kai-tub))
+
+#### Authors: 1
+
+- Kai Norman Clasen ([@kai-tub](https://github.com/kai-tub))
+
+---
+
 # v0.2.0 (Tue May 17 2022)
 
 #### 🚀 Enhancement
