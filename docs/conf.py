@@ -49,7 +49,8 @@ external_toc_path = "_toc.yml"
 # }
 
 myst_substitutions = {
-    "BenInterface": "[BigEarthNet Patch Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/)"
+    "BenInterface": "[BigEarthNet Patch Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/)",
+    "Squirrel": "[Squirrel](https://squirrel-datasets-core.readthedocs.io/en/latest/)",
 }
 
 myst_enable_extensions = [
