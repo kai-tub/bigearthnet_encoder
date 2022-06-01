@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="LMDB Usage Example" href="06_lmdb_example.html" /><link rel="prev" title="Conversion process" href="02_conversion_process.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API" href="api.html" /><link rel="prev" title="LMDB Usage Example" href="06_lmdb_example.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>LMDB - BigEarthNet Encoder documentation</title>
+        <title>Squirrel thoughts - BigEarthNet Encoder documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
@@ -160,9 +160,9 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="00_general.html">General</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_conversion_process.html">Conversion process</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">LMDB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_lmdb.html">LMDB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_lmdb_example.html">LMDB Usage Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="10_squirrel_thoughts.html">Squirrel thoughts</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Squirrel thoughts</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_encoder.html">API Encoder</a></li>
 </ul>
@@ -199,79 +199,119 @@
           </label>
         </div>
         <article role="main">
-          <section class="tex2jax_ignore mathjax_ignore" id="lmdb">
-<span id="id1"></span><h1>LMDB<a class="headerlink" href="#lmdb" title="Permalink to this headline">#</a></h1>
-<p><a class="reference external" href="https://www.symas.com/lmdb">LMDB</a> (Lightning Memory-Mapped Database) is a key-value storage format that stores each entry as a byte array.
-Like a Python dictionary, the key must be unique, and the value can be any object.
-In the Python domain, the keys/values are usually <em>pickled</em> to serialize the data to the binary format expected by LMDB.</p>
-<p>The encoder can create an S1/S2 or a combined S1 and S2 LMDB archive:</p>
+          <section class="tex2jax_ignore mathjax_ignore" id="squirrel-thoughts">
+<h1>Squirrel thoughts<a class="headerlink" href="#squirrel-thoughts" title="Permalink to this headline">#</a></h1>
+<blockquote>
+<div><p>A couple of thoughts about the squirrel library</p>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is an initial draft discussing the pros/cons of the <a class="reference external" href="https://squirrel-datasets-core.readthedocs.io/en/latest/">Squirrel</a> library for BigEarthNet!</p>
+<p>Please skip this section if you are not actively working on the Encoder library!</p>
+</div>
+<p>In general, the core idea of the Squirrel library is that it is an iterator-based dataset wrapper.
+As a result, the encoded dataset is designed to be consumed entirely.
+If only small random subsets are loaded, I expect the Squirrel data to perform poorly.</p>
+<p>The key strategy to maximize the read-performance is to read <em>large</em> files.
+SSDs have a low random-read performance (~200–900 MB/s).
+Frequently reading small chunks of data (i.e., images/patches) is nothing else than randomly reading from disk.
+The data must be converted into a different format that is better suited to allow quick data access.</p>
+<p>To maximize the read-performance, the data must be orders of magnitudes greater than 4KB (the smallest unit of data accessed by the SSD).
+A possible solution is <em>sharding</em>.
+<em>Sharding</em> aggregates multiple <em>smaller</em>_ files into <em>larger</em> storage units (<em>shards</em>).
+A simple way to generate shards is to convert the data into the GNU <code class="docutils literal notranslate"><span class="pre">tar</span></code> format.
+Combining the sharding strategy with compression can reduce the data size, benefiting data accessed over the network.
+The recommended size of each shard is between 128MB – 1GB.
+For more details, refer to the <a class="reference external" href="https://arxiv.org/abs/2001.01858">High Performance I/O for large scale deep learning paper from NVIDIA</a>.</p>
+<p>Important questions that need to be answered:</p>
 <ul class="simple">
-<li><p>The encoder uses the patch name as the key</p>
+<li><p>Can sharding be applied in such a way that it could be split by country?</p>
 <ul>
-<li><p>The patch name is either the S1 or S2 name, depending on the source dataset</p></li>
-<li><p>If the combined S1 and S2 LMDB archive should be generated, the S2 patch name is used</p></li>
+<li><p>Possibly with suffixes to hit the size sweet-spot</p></li>
+<li><p>How hard is the performance impact, if I access a random subset?</p>
+<ul>
+<li><p>This is not <em>too</em> important because we could regenerate the dataset depending on the application</p></li>
 </ul>
 </li>
-<li><p>The <em>value</em> is the BigEarthNet-Patch-Interface object</p></li>
-<li><p>The encoder provides a CLI to generate the required archive easily</p>
+<li><p>What is the impact on the randomness of the data?</p>
 <ul>
-<li><p>Either a simple LMDB archive that only contains the image data as a numpy array (<code class="docutils literal notranslate"><span class="pre">raw</span></code>)</p></li>
-<li><p>Or an archive that already adds the 43- and 19-class nomenclature labels as metadata (<code class="docutils literal notranslate"><span class="pre">with-lbls</span></code>)</p></li>
+<li><p>How to tune the parameters to create <em>truly random</em> batches?</p></li>
+<li><p>We train with batch sizes from 128 – 2048</p></li>
 </ul>
 </li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ben_encoder</span> <span class="n">write</span><span class="o">-</span><span class="n">s</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="o">&gt;-</span><span class="n">lmdb</span><span class="o">-</span><span class="n">raw</span> <span class="o">&lt;</span><span class="n">PATH</span> <span class="n">TO</span> <span class="n">BEN</span> <span class="n">DIRECTORY</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">OUTPUT</span> <span class="n">PATH</span><span class="o">&gt;</span>
-<span class="c1"># OR</span>
-<span class="n">ben_encoder</span> <span class="n">write</span><span class="o">-</span><span class="n">s</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="o">&gt;-</span><span class="n">lmdb</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">labels</span> <span class="o">&lt;</span><span class="n">PATH</span> <span class="n">TO</span> <span class="n">BEN</span> <span class="n">DIRECTORY</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">OUTPUT</span> <span class="n">PATH</span><span class="o">&gt;</span>
+</li>
+<li><p>Is there a way to cache the entire dataset in memory?</p></li>
+<li><p>How to efficiently split train/validation/test set?</p>
+<ul>
+<li><p>Their example code uses datasets that already provide train/validation/test splits as shards.</p></li>
+<li><p><a class="reference external" href="https://squirrel-datasets-core.readthedocs.io/en/latest/dataset_links/cc100.html">CC100</a> from the Squirrel-Datasets documentation does not give a train/test/validation split</p>
+<ul>
+<li><p>Sharded by language</p></li>
+</ul>
+</li>
+<li><p>It looks like the best approach would be to re-generate the dataset according to the used split to optimize the performance</p></li>
+</ul>
+</li>
+</ul>
+<section id="shard-size">
+<h2>Shard size<a class="headerlink" href="#shard-size" title="Permalink to this headline">#</a></h2>
+<p>Converting the patches to the intermediate <a class="reference external" href="https://docs.kai-tub.tech/bigearthnet_patch_interface/">BigEarthNet Patch Interface</a> format, the resulting object size is ~16KB.
+To create shards with a size of 1GB, we could combine ~6650 patches (without compression).
+If we train with the usual batch sizes of around 1024 patches per batch, how strongly would the shard-size impact the randomness?</p>
+<p>How much time does the decompression take?
+Would it make sense to compress the data in a different format to GZIP, like LZ4 or ZSTD, which may decode faster than GZIP?</p>
+</section>
+<section id="performance-discussion">
+<h2>Performance discussion<a class="headerlink" href="#performance-discussion" title="Permalink to this headline">#</a></h2>
+<p>I am currently using <code class="docutils literal notranslate"><span class="pre">cProfile</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m cProfile -o stats.dump reader.py
+snakeviz stats.dump
 </pre></div>
 </div>
-<div class="asciinema" id="asciinema-0">
-</div>
-<script src="_static/asciinema-player.min.js"></script><script>
-AsciinemaPlayer.create('_recs/05_lmdb-asciinema-0.rec', document.getElementById('asciinema-0'), {"rows": 40, "cols": 80, "idletimelimit": 5, "autoplay": true, "preload": false, "loop": false, "startat": 0, "speed": 1.0, "theme": "asciinema", "poster": null, "fit": "width", "fontsize": "small"});
-</script><p>To access the values, the pickled data has to be loaded with <code class="docutils literal notranslate"><span class="pre">BigEarthNet_S1_Patch.loads</span></code>.</p>
-<p>After creating the archive, the archive should have restricted write access to ensure that the data isn’t accidentally touched.</p>
-<section id="short-comings">
-<h2>Short-comings<a class="headerlink" href="#short-comings" title="Permalink to this headline">#</a></h2>
-<p>There are a couple of issues with the LMDB approach.</p>
+<p>To analyze where most time is spent.</p>
+<p>In my first mini-tests, the Squirrel dataset is significantly slower than the LMDB variant.
+The main issue is that most time is spent decompressing the archive.
+Without the decompression, the performance would be roughly similar.</p>
+<p>These results are done without applying any shuffling at all!</p>
+<p>With GZIP compression:</p>
 <ul class="simple">
-<li><p>LMDB reads the entire data when given a key</p>
+<li><p>2 * 6600 patches = 2 * 797MB</p></li>
+<li><p>Iteration over both shards takes ~14sek</p>
 <ul>
-<li><p>If all 12 bands are encoded, all 12 bands are always read even if only 3 or 10 are required</p></li>
-<li><p>To optimize the read performance, there would have to be multiple archives with the <em>minimum</em> data for the specific task</p></li>
+<li><p>Most of the time is required to unpack the archive</p></li>
+<li><p>It would take ~10min to pass through the dataset</p></li>
+<li><p>Could it potentially be minimized by prefetching?</p></li>
 </ul>
 </li>
-<li><p>Needs to <em>know</em> what is being read</p>
+</ul>
+<p>LMDB:</p>
+<ul class="simple">
+<li><p>2 * 6600 patches = 2.2GB</p></li>
+<li><p>Iteration of the entire LMDB file takes ~4sek</p>
 <ul>
-<li><p>The data is encoded as a binary stream and requires the user to know how to <em>unpickle</em> the data</p></li>
-<li><p>Here, the <a class="reference external" href="https://docs.kai-tub.tech/bigearthnet_patch_interface/">BigEarthNet Patch Interface</a> library has to be installed</p></li>
+<li><p>To iterate over BigEarthNet, it would take ~3min</p></li>
 </ul>
 </li>
-<li><p>Hard to get optimal read performance with <em>batched</em> input data</p>
-<ul>
-<li><p>PyTorch style data loading will create a new connection to the LMDB archive for <em>each</em> image file and not use a single one for the entire batch</p></li>
-<li><p>It <em>could</em> be fixed by writing a specialized dataloader but is not trivial</p></li>
-</ul>
-</li>
-<li><p>Not easy to control caching behavior</p>
-<ul>
-<li><p>No way to enforce to read the entire archive into RAM for maximum read performance (at least I couldn’t figure it out)</p></li>
-</ul>
-</li>
-<li><p>Relatively hard-to-read documentation (personal opinion)</p></li>
 </ul>
 </section>
-<section id="design-decisions">
-<h2>Design-Decisions<a class="headerlink" href="#design-decisions" title="Permalink to this headline">#</a></h2>
-<p>There may be a couple of <em>unexpected</em> design decisions.
-One decision was to <em>not</em> interpolate the data before storing them in an LMDB file.
-The main reason was that the <em>shared</em> LMDB archive was as close as possible to the <em>original</em> data to allow all users to work with it however they please.
-Some might use different interpolation strategies/libraries; others may use models that do not require any interpolation!
-The other, less obvious benefit, is that depending on the location of the archive, it might be <em>faster</em> to access and load the small patches and interpolate them dynamically than storing them in the larger upscaled format.
-A data-loading bottleneck usually causes this issue.
-The same logic applies to why the data is stored in its original <code class="docutils literal notranslate"><span class="pre">uint16</span></code> format and not in the often required <code class="docutils literal notranslate"><span class="pre">float32</span></code> format.</p>
-<p>We have seen cases where the ‘on-fly’ interpolation and conversion were faster and slower!
-It heavily depends on the exact machine configuration.</p>
+<section id="data-access-in-detail">
+<h2>Data access in detail<a class="headerlink" href="#data-access-in-detail" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>With <code class="docutils literal notranslate"><span class="pre">keys_iterable</span></code> only specific shards can be accessed.</p></li>
+<li><p>The keys themselves can be easily shuffled.</p></li>
+<li><p>So the shard access can be easily randomized.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shuffle_item_buffer</span></code> is size of the buffer used to shuffle items after items are fetched.</p></li>
+<li><p>Are multiple shards unpacked?</p></li>
+</ul>
+</section>
+<section id="data-shuffling-in-detail">
+<h2>Data shuffling in detail<a class="headerlink" href="#data-shuffling-in-detail" title="Permalink to this headline">#</a></h2>
+<figure class="align-default" id="id1">
+<img alt="_images/squirrel_shuffle.svg" src="_images/squirrel_shuffle.svg"/><figcaption>
+<p><span class="caption-text">Data shuffling in squirrel</span><a class="headerlink" href="#id1" title="Permalink to this image">#</a></p>
+</figcaption>
+</figure>
 </section>
 </section>
 
@@ -280,23 +320,23 @@ It heavily depends on the exact machine configuration.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="06_lmdb_example.html">
+          <a class="next-page" href="api.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">LMDB Usage Example</div>
+                <div class="title">API</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="02_conversion_process.html">
+          <a class="prev-page" href="06_lmdb_example.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Conversion process</div>
+                <div class="title">LMDB Usage Example</div>
                 
               </div>
             </a>
@@ -337,9 +377,11 @@ It heavily depends on the exact machine configuration.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">LMDB</a><ul>
-<li><a class="reference internal" href="#short-comings">Short-comings</a></li>
-<li><a class="reference internal" href="#design-decisions">Design-Decisions</a></li>
+<li><a class="reference internal" href="#">Squirrel thoughts</a><ul>
+<li><a class="reference internal" href="#shard-size">Shard size</a></li>
+<li><a class="reference internal" href="#performance-discussion">Performance discussion</a></li>
+<li><a class="reference internal" href="#data-access-in-detail">Data access in detail</a></li>
+<li><a class="reference internal" href="#data-shuffling-in-detail">Data shuffling in detail</a></li>
 </ul>
 </li>
 </ul>
