@@ -7,6 +7,12 @@ This is an initial draft discussing the pros/cons of the {{Squirrel}} library fo
 Please skip this section if you are not actively working on the Encoder library!
 :::
 
+:::{note}
+A valid competitor to Squirrel is [torchdata](https://pytorch.org/data/beta/index.html).
+The core idea is identical to Squirrel by providing functions for handling simple iterator-based utility functions.
+Torchdata could be a valid alternative, although it looks like the sharding functionality is not yet supported in torchdata.
+:::
+
 In general, the core idea of the Squirrel library is that it is an iterator-based dataset wrapper.
 As a result, the encoded dataset is designed to be consumed entirely.
 If only small random subsets are loaded, I expect the Squirrel data to perform poorly.
@@ -67,12 +73,17 @@ With GZIP compression:
     - Most of the time is required to unpack the archive
     - It would take ~10min to pass through the dataset
     - Could it potentially be minimized by prefetching?
+    - Does `SplitByWorker` undo it?
+
+With no compression (custom):
+- 2 * 6600 patches = 2 * 1.1GB
+- Iteration over both shards takes ~1s 🤯
+    - It would take 0.67min to pass through BigEarthNet
 
 LMDB:
 - 2 * 6600 patches = 2.2GB
 - Iteration of the entire LMDB file takes ~4sek
     - To iterate over BigEarthNet, it would take ~3min
-
 
 
 ## Data access in detail
@@ -81,6 +92,9 @@ LMDB:
 - So the shard access can be easily randomized.
 - `shuffle_item_buffer` is size of the buffer used to shuffle items after items are fetched.
 - Are multiple shards unpacked?
+
+With `SplitByWorker` and a PyTorch dataloader, the keys are split according to their rank.
+
 
 ## Data shuffling in detail
 ```{figure} images/squirrel_shuffle.svg
