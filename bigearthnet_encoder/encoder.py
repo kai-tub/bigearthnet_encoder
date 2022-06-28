@@ -15,9 +15,15 @@ from bigearthnet_patch_interface.s1_interface import BigEarthNet_S1_Patch
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
 from pydantic import DirectoryPath, validate_arguments
 from rich.progress import Progress
+from bigearthnet_common.constants import Split
+from bigearthnet_common.base import get_original_split_from_patch_name
+from functools import partial
 
 from ._tif_reader import read_ben_tiffs
 from .metadata_utils import load_labels_from_patch_path
+from .squirrel_ext import _patch_interface_to_dict, _write_prefixed_shard, ConfigurableMessagePackDriver
+import random
+from squirrel.iterstream import IterableSource
 
 
 def _tiff_name_to_ben_s2_patch_key(name: str) -> str:
@@ -263,6 +269,58 @@ def write_S1_S2_lmdb_with_lbls(
         **kwargs,
     )
 
+def _patch_path_to_flat_data(patch_path: Path):
+    labels_dict = load_labels_from_patch_path(patch_path, True, infer_new_labels=True)
+    s2_patch = tiff_dir_to_ben_s2_patch(patch_path, patch_name=patch_path.name, **labels_dict)
+    return _patch_interface_to_dict(s2_patch)
+
+def _write_s2_msgpack(
+    patch_paths: List[DirectoryPath],
+    target_path: Path,
+    compression: Optional[str] = None,
+    shard_size: int = 6600,
+    prefix: Optional[str] = None,
+    shuffle: bool = True,
+    max_threads: int = 128,
+    seed: int = 42,
+):
+    # FUTURE: allow custom shard_names_mapping function!
+    if shuffle:
+        random.seed(seed)
+        random.shuffle(patch_paths)
+
+    msgpack_driver = ConfigurableMessagePackDriver(str(target_path))
+    write_prefixed_shard = partial(
+        _write_prefixed_shard,
+        msgpack_driver=msgpack_driver,
+        prefix=prefix,
+        compression=compression
+    )
+
+    (
+        IterableSource(patch_paths)
+        .async_map(_patch_path_to_flat_data, max_workers=max_threads)
+        .batched(shard_size, drop_last_if_not_full=False)
+        .tqdm()
+        .async_map(write_prefixed_shard, buffer=5)
+        .join()
+    )
+    return msgpack_driver
+
+@fc.delegates(_write_s2_msgpack, but=["prefix"])
+def write_S2_squirrel(
+    ben_s2_directory_path: Path, target_path: Path, **kwargs
+):
+    s2_patch_paths = get_s2_patch_directories(ben_s2_directory_path)
+    for split in Split:
+        split_patches = [p for p in s2_patch_paths if split == get_original_split_from_patch_name(p.name)]
+        _write_s2_msgpack(
+            split_patches,
+            target_path,
+            prefix=split,
+            **kwargs,
+        )
+
 
 def encoder_cli() -> None:
     app = typer.Typer()
@@ -272,6 +330,7 @@ def encoder_cli() -> None:
     app.command()(write_S1_lmdb_with_lbls)
     app.command()(write_S2_lmdb_with_lbls)
     app.command()(write_S1_S2_lmdb_with_lbls)
+    app.command()(write_S2_squirrel)
     app()
 
 
