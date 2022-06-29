@@ -20,6 +20,12 @@ tmp*
 tags
 node_modules/
 *.parquet
+notebooks/lightning_logs/
+notebooks/memray*
+notebooks/*.txt
+notebooks/*.png
+notebooks/wandb/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
