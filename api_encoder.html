@@ -3,14 +3,13 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="API" href="api.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Dependencies" href="general/dependencies.html" /><link rel="prev" title="API" href="api.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
+    <meta name="generator" content="sphinx-4.5.0, furo 2022.09.29"/>
         <title>API Encoder - BigEarthNet Encoder documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
-    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/asciinema-player.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     
@@ -167,6 +166,9 @@
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">API Encoder</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="general/dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="general/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="general/license.html">License</a></li>
 </ul>
 
 </div>
@@ -186,7 +188,8 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
+          
+<div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -204,73 +207,177 @@
 <span id="api-encoder"></span><h1>API Encoder<a class="headerlink" href="#module-bigearthnet_encoder.encoder" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.build_tiff_dirs_to_ben_s1_s2_patch_func">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">build_tiff_dirs_to_ben_s1_s2_patch_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pydantic.types.DirectoryPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.build_tiff_dirs_to_ben_s1_s2_patch_func" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">build_tiff_dirs_to_ben_s1_s2_patch_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.build_tiff_dirs_to_ben_s1_s2_patch_func" title="Permalink to this definition">#</a></dt>
 <dd><p>Given the path to the Sentinel-1 root directory, return a function that
 builds a <cite>BigEarthNet_S1_S2_Path</cite> given a Sentinel-2 path.</p>
 <p>This builder ensures that the same Sentinel-1 root path is used for all future
 calls of the resulting function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ben_s1_path</strong> (<em>pydantic.types.DirectoryPath</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Callable</em></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.tiff_dir_to_ben_s1_patch">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">tiff_dir_to_ben_s1_patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pydantic.types.DirectoryPath</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bigearthnet_patch_interface.s1_interface.BigEarthNet_S1_Patch</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.tiff_dir_to_ben_s1_patch" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">tiff_dir_to_ben_s1_patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch_dir</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.tiff_dir_to_ben_s1_patch" title="Permalink to this definition">#</a></dt>
 <dd><p>Process a Sentinel-1 directory path and create a <cite>BigEarthNet_S1_Patch</cite>.
 The keyword arguments will be passed in as extra metadata to the patch class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch_dir</strong> (<em>pydantic.types.DirectoryPath</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bigearthnet_patch_interface.s1_interface.BigEarthNet_S1_Patch</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.tiff_dir_to_ben_s2_patch">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">tiff_dir_to_ben_s2_patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pydantic.types.DirectoryPath</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bigearthnet_patch_interface.s2_interface.BigEarthNet_S2_Patch</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.tiff_dir_to_ben_s2_patch" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">tiff_dir_to_ben_s2_patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch_dir</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.tiff_dir_to_ben_s2_patch" title="Permalink to this definition">#</a></dt>
 <dd><p>Process a Sentinel-2 directory path and create a <cite>BigEarthNet_S2_Patch</cite>
 The keyword arguments will be passed in as extra metadata to the patch class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch_dir</strong> (<em>pydantic.types.DirectoryPath</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bigearthnet_patch_interface.s2_interface.BigEarthNet_S2_Patch</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S1_S2_lmdb_raw">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_S2_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_S2_lmdb_raw" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_S2_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_S2_lmdb_raw" title="Permalink to this definition">#</a></dt>
 <dd><p>Write a combined S1 and S2 lmdb file that only includes the patch name
 as the key and the patch array information as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s1_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>ben_s2_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S1_S2_lmdb_with_lbls">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_S2_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_S2_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_S2_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_S2_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
 <dd><p>Write a combined S1 and S2 lmdb file that includes the patch name
 as the key and the patch array information, as well as the original and new label data as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s1_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>ben_s2_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S1_lmdb_raw">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S1_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_lmdb_raw" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S1_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_lmdb_raw" title="Permalink to this definition">#</a></dt>
 <dd><p>Write an S1 lmdb file that only includes the patch name
 as the key and the patch array information as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s1_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S1_lmdb_with_lbls">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S1_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S1_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s1_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S1_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S1_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
 <dd><p>Write an S1 lmdb file that includes the patch name
 as the key and the patch array information, as well as the original and new label data as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s1_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S2_lmdb_raw">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S2_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S2_lmdb_raw" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S2_lmdb_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S2_lmdb_raw" title="Permalink to this definition">#</a></dt>
 <dd><p>Write an S2 lmdb file that only includes the patch name
 as the key and the patch array information as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s2_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bigearthnet_encoder.encoder.write_S2_lmdb_with_lbls">
-<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S2_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S2_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bigearthnet_encoder.encoder.</span></span><span class="sig-name descname"><span class="pre">write_S2_lmdb_with_lbls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ben_s2_directory_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Path('S2_lmdb.db')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmdb_max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1099511627776</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bigearthnet_encoder.encoder.write_S2_lmdb_with_lbls" title="Permalink to this definition">#</a></dt>
 <dd><p>Write an S2 lmdb file that includes the patch name
 as the key and the patch array information, as well as the original and new label data as the value.</p>
 <p>If the process fails due to memory issues, decrease the <cite>chunk_size</cite>!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ben_s2_directory_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>lmdb_path</strong> (<em>pathlib.Path</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>lmdb_max_size</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -280,9 +387,17 @@ as the key and the patch array information, as well as the original and new labe
       <footer>
         
         <div class="related-pages">
-          
+          <a class="next-page" href="general/dependencies.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Dependencies</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
           <a class="prev-page" href="api.html">
-              <svg><use href="#svg-arrow-right"></use></svg>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
@@ -328,11 +443,6 @@ as the key and the patch array information, as well as the original and new labe
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
-    <script>let toggleHintShow = 'Click to show';</script>
-    <script>let toggleHintHide = 'Click to hide';</script>
-    <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="_static/togglebutton.js"></script>
-    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({startOnLoad:true});</script>
     </body>
