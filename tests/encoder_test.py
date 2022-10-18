@@ -3,7 +3,14 @@ from pathlib import Path
 
 import lmdb
 import pytest
+from bigearthnet_common.base import s1_to_s2_patch_name
 from bigearthnet_common.constants import BEN_S1_RE, BEN_S2_RE
+from bigearthnet_common.example_data import (
+    get_s1_example_folder_path,
+    get_s1_example_patch_path,
+    get_s2_example_folder_path,
+    get_s2_example_patch_path,
+)
 from bigearthnet_patch_interface.merged_interface import BigEarthNet_S1_S2_Patch
 from bigearthnet_patch_interface.s1_interface import BigEarthNet_S1_Patch
 from bigearthnet_patch_interface.s2_interface import BigEarthNet_S2_Patch
@@ -21,15 +28,13 @@ from bigearthnet_encoder.encoder import (
     write_S2_lmdb_with_lbls,
 )
 
-TEST_S2_ROOT = Path(__file__).parent / "s2-tiny"
-TEST_S2_FOLDER = TEST_S2_ROOT / "S2A_MSIL2A_20170617T113321_4_55"
-TEST_S2_FILE = TEST_S2_FOLDER / "S2A_MSIL2A_20170617T113321_4_55_B01.tif"
-TEST_S2_ENTRIES = 3
+TEST_S2_ROOT = get_s2_example_folder_path()
+TEST_S2_FOLDER = get_s2_example_patch_path()
+TEST_S2_ENTRIES = len(list(TEST_S2_ROOT.iterdir()))
 
-TEST_S1_ROOT = Path(__file__).parent / "s1-tiny"
-TEST_S1_FOLDER = TEST_S1_ROOT / "S1A_IW_GRDH_1SDV_20170613T165043_33UUP_61_39"
-TEST_S1_FILE = TEST_S1_FOLDER / "S1A_IW_GRDH_1SDV_20170613T165043_33UUP_61_39_VV.tif"
-TEST_S1_ENTRIES = 6
+TEST_S1_ROOT = get_s1_example_folder_path()
+TEST_S1_FOLDER = get_s1_example_patch_path()
+TEST_S1_ENTRIES = len(list(TEST_S1_ROOT.iterdir()))
 
 
 def test_s2_tiff_dir_to_ben():
@@ -78,6 +83,9 @@ def test_write_S1_lmdb_raw():
 
 
 def test_write_S1_S2_lmdb_raw():
+    assert {s2.name for s2 in TEST_S2_ROOT.iterdir()} == {
+        s1_to_s2_patch_name(s1.name) for s1 in TEST_S1_ROOT.iterdir()
+    }, "Test needs to be updated to filter test-data!"
     with tempfile.TemporaryDirectory() as tmpdir:
         write_S1_S2_lmdb_raw(TEST_S1_ROOT, TEST_S2_ROOT, lmdb_path=tmpdir)
         _lmdb_tester(tmpdir, True, BigEarthNet_S1_S2_Patch, TEST_S2_ENTRIES)

@@ -1,1 +1,1 @@
-"""Test package for bigearthnet_encoder."""
+"""Test package for bigearthnet-encoder."""
