@@ -1,6 +1,6 @@
 [project]
 name = "bigearthnet-encoder"
-version = "0.2.1"
+version = "0.3.0"
 description = "A flexible BigEarthNet encoder that allows one to quickly convert BigEarthNet to a DL-optimization data format."
 authors = [
     {name = "Kai Norman Clasen", email= "k.clasen@protonmail.com"},
