@@ -68,6 +68,8 @@ nb_custom_formats = {
     ]
 }
 
+nb_execution_raise_on_error = True
+
 # Recommendation from furo
 # https://pradyunsg.me/furo/kitchen-sink/api/
 autodoc_typehints = "description"

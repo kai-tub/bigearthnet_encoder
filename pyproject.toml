@@ -55,6 +55,8 @@ docs = [
     "sphinxcontrib-mermaid",
     "scikit-image>=0.19.3",
     "matplotlib>=3.6.1",
+    "ipywidgets",
+    "torch>=1.11",
 ]
 test = [
     "pytest",
@@ -62,7 +64,6 @@ test = [
     "jupyter",
     "notebook",
     "icecream>=2.1",
-    "torch>=1.11",
     "pyarrow>=7",
 ]
 lint = [
