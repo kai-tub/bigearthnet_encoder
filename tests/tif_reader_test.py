@@ -1,12 +1,13 @@
 from pathlib import Path
 
 import pytest
+from bigearthnet_common.example_data import get_s2_example_patch_path
 from pydantic import ValidationError
 
 from bigearthnet_encoder._tif_reader import *
 
-TEST_FOLDER = Path(__file__).parent / Path("s2-tiny/S2A_MSIL2A_20170617T113321_4_55")
-TEST_FILE = TEST_FOLDER / "S2A_MSIL2A_20170617T113321_4_55_B01.tif"
+TEST_FOLDER = get_s2_example_patch_path()
+TEST_FILE = TEST_FOLDER / f"{TEST_FOLDER.name}_B01.tif"
 
 
 def test_read_tif():
