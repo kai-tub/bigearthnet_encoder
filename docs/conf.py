@@ -33,9 +33,10 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autodoc",
     # Other popular choices:
+    # "sphinx_design",
     # "myst_parser",
-    "sphinxcontrib.mermaid",
     "sphinx_cli_recorder",
+    "sphinxcontrib.mermaid",
     # "sphinx_design",
     # "sphinx_inline_tabs",
     # "sphinx_comments",
@@ -43,15 +44,6 @@ extensions = [
     # "sphinxcontrib.bibtex",
 ]
 external_toc_path = "_toc.yml"
-
-# intersphinx_mapping = {
-#     "BenInterface": ("https://docs.kai-tub.tech/bigearthnet_patch_interface/", None)
-# }
-
-myst_substitutions = {
-    "BenInterface": "[BigEarthNet Patch Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/)",
-    "Squirrel": "[Squirrel](https://squirrel-datasets-core.readthedocs.io/en/latest/)",
-}
 
 myst_enable_extensions = [
     "colon_fence",
@@ -68,6 +60,24 @@ myst_enable_extensions = [
     "substitution",
     "tasklist",
 ]
+
+nb_custom_formats = {
+    ".ipynb": [
+        "common_nb_preprocessors.myst_nb_metadata_injector",
+        {"prefix": "#", "delimiter": "="},
+    ]
+}
+
+# Recommendation from furo
+# https://pradyunsg.me/furo/kitchen-sink/api/
+autodoc_typehints = "description"
+autodoc_class_signature = "separated"
+
+myst_substitutions = {
+    "BenInterface": "[BigEarthNet Patch Interface](https://docs.kai-tub.tech/bigearthnet_patch_interface/)",
+    "Squirrel": "[Squirrel](https://squirrel-datasets-core.readthedocs.io/en/latest/)",
+}
+
 source_suffix = {".ipynb": "myst-nb", ".md": "myst-nb"}
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

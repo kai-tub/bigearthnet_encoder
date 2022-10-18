@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 import bigearthnet_common.constants as ben_constants
 import fastcore.all as fc
 import lmdb
-import rich_click.typer as typer
+import typer
 from bigearthnet_common.base import (
     get_s1_patch_directories,
     get_s2_patch_directories,
@@ -101,6 +101,7 @@ def _write_lmdb(
     lmdb_path: Path = Path("S2_lmdb.db"),
     patch_path_to_metadata: Optional[Callable[[DirectoryPath], Dict[str, Any]]] = None,
     chunk_size: int = 50_000,
+    lmdb_max_size: int = 2**40,
 ) -> None:
     """
     The function writes an LMDB archive.
@@ -111,13 +112,18 @@ def _write_lmdb(
     The `chunk_size` ensure that after processing `chunk_size` patches the output
     is written to disk and the memory is freed.
     If the process fails due to memory issues, decrease the `chunk_size`!
+
+    `lmdb_max_size` is the _theoretical_ upper size for the LMDB archive.
+    Usually, there should be no need to change this default, as 1TiB (the default)
+    is big enough for most encodings and shouldn't even bother if not as much disk-space
+    is available. Though some users have reported that they had to change this value
+    to get it working which I couldn't reproduce.
     """
     if len(patch_paths) == 0:
         raise ValueError(
             "No patches were provided! Maybe provided wrong Sentinel directory?"
         )
-    max_size = 2**40  # 1TebiByte
-    env = lmdb.open(str(lmdb_path), map_size=max_size, readonly=False)
+    env = lmdb.open(str(lmdb_path), map_size=lmdb_max_size, readonly=False)
 
     chunks = fc.chunked(patch_paths, chunk_sz=chunk_size, drop_last=False)
     with Progress() as progress:
@@ -265,7 +271,7 @@ def write_S1_S2_lmdb_with_lbls(
 
 
 def encoder_cli() -> None:
-    app = typer.Typer()
+    app = typer.Typer(rich_markup_mode="markdown")
     app.command()(write_S1_lmdb_raw)
     app.command()(write_S2_lmdb_raw)
     app.command()(write_S1_S2_lmdb_raw)

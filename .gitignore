@@ -1,11 +1,12 @@
-tmp.*
-wip.*
 # Personal often required
 docs/jupyter_execute/
 .vscode/
+# do not allow for pdm to create this folder in git
+__pypackages__/
 ###
-*_lmdb.db
 
+S2_lmdb.db/
+.pdm.toml
 # hide this for now
 *.bak
 .gitattributes

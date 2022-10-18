@@ -18,7 +18,7 @@ The data must be converted into a different format that is better suited to allo
 
 To maximize the read-performance, the data must be orders of magnitudes greater than 4KB (the smallest unit of data accessed by the SSD).
 A possible solution is _sharding_.
-_Sharding_ aggregates multiple _smaller__ files into _larger_ storage units (_shards_).
+_Sharding_ aggregates multiple _smaller_ files into _larger_ storage units (_shards_).
 A simple way to generate shards is to convert the data into the GNU `tar` format.
 Combining the sharding strategy with compression can reduce the data size, benefiting data accessed over the network.
 The recommended size of each shard is between 128MB -- 1GB.
